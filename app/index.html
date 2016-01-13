@@ -37,7 +37,11 @@
 </head>
 <body onload="showPage()" class="page" scroll ng-class="{fix:CreateMenu}">
 
-    <h2 id="loadingText">Loading...</h2>
+    <div class="loading-container loading-container-center" id="loading-container-div">
+        <div class="loading"></div>
+        <div id="loading-text">loading</div>
+    </div>
+
     <div style="display: none" id="hideAll">
 
         <div ng-include="'header.html'"></div>
