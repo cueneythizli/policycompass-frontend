@@ -68,33 +68,36 @@ angular.module('pcApp.datasets.directives.eurostatImport', []).directive('eurost
                         }
                     }).then(function (response) {
                         ngProgress.complete();
-                        scope.eurostatFilters = response.data.result;
-                        scope.eurostatKeys = [];
-                        scope.eurostatValues = [];
-                        for(var key in scope.eurostatFilters) {
-                            if (scope.eurostatFilters.hasOwnProperty(key) && key !== 'label') {
-                                scope.eurostatKeys.push(key);
-                                var values = [];
-                                for(var i = 0; i<scope.eurostatFilters[key].length; i++){
-                                    if(key === 'geo'){
-                                        scope.filterGeos.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
-                                    }
-                                    else if(key === 'time'){
-                                        scope.filterTimes.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
-                                    }
-                                    else{
-                                        values.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
-                                    }
-                                }
-                                if(key !== 'geo' && key !== 'time')scope.eurostatValues.push([key,values]);
-                            }
-                            else if(scope.eurostatFilters.hasOwnProperty(key) && key == 'label'){
-                                scope.eurostatLabel = scope.eurostatFilters[key];
-                            }
-                        }
-
+                        prepareFilters(response);
                     });
                 };
+
+                var prepareFilters = function(response){
+                    scope.eurostatFilters = response.data.result;
+                    scope.eurostatKeys = [];
+                    scope.eurostatValues = [];
+                    for(var key in scope.eurostatFilters) {
+                        if (scope.eurostatFilters.hasOwnProperty(key) && key !== 'label') {
+                            scope.eurostatKeys.push(key);
+                            var values = [];
+                            for(var i = 0; i<scope.eurostatFilters[key].length; i++){
+                                if(key === 'geo'){
+                                    scope.filterGeos.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
+                                }
+                                else if(key === 'time'){
+                                    scope.filterTimes.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
+                                }
+                                else{
+                                    values.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
+                                }
+                            }
+                            if(key !== 'geo' && key !== 'time')scope.eurostatValues.push([key,values]);
+                        }
+                        else if(scope.eurostatFilters.hasOwnProperty(key) && key == 'label'){
+                            scope.eurostatLabel = scope.eurostatFilters[key];
+                        }
+                    }
+                }
 
                 scope.updateFilters = function(){
                     scope.loadResource(scope.lastTerm,{'result': scope.selectedFilters});
