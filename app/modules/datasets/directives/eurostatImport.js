@@ -12,13 +12,12 @@ angular.module('pcApp.datasets.directives.eurostatImport', []).directive('eurost
                 'loadData': '='
             },
             link: function (scope, element, attrs, ctrls) {
-                scope.itemsPerPage = 10;
-                scope.selectedFilters = [];
-                scope.filterGeos = [];
-                scope.filterTimes = [];
+                scope.itemsPerPage = 9;
                 scope.byNumResourcesGtZero = function (result) {
                     return result.num_resources > 0;
                 };
+
+                scope.eurostatStart = 0;
 
                 scope.byResourceTypeIn = function (types) {
                     return function (resource) {
@@ -33,9 +32,9 @@ angular.module('pcApp.datasets.directives.eurostatImport', []).directive('eurost
 
                 scope.onPageChange = function () {
                     var start = (scope.currentPage - 1) * scope.itemsPerPage;
-                    scope.search(scope.lastTerm, start);
+                    scope.eurostatStart = start;
+                    handlePageResults(scope.eurostatTotalSearchResults);
                 };
-
 
                 scope.loadResource = function (dataset, filters) {
                     ngProgress.start();
@@ -47,20 +46,73 @@ angular.module('pcApp.datasets.directives.eurostatImport', []).directive('eurost
                             convert: true
                         }
                     }).then(function (response) {
-                        scope.loadData(dataset, filters,response.data);
+                        if(response.data.result != 416 && response.data.result != 400){
+                            scope.loadData(dataset, filters,response.data);
+                            scope.moreFilters = false;
+                            scope.wrongFilterValues = false;
+                        }
+
+                        if(response.data.result == 416){
+                            scope.moreFilters = true;
+                        }
+                        else{
+                            scope.moreFilters = false;
+                        }
+
+                        if(response.data.result == 400){
+                            scope.wrongFilterValues = true;
+                        }
+                        else{
+                            scope.wrongFilterValues = false;
+                        }
+
                         ngProgress.complete();
                     });
                 };
 
-                scope.search = function (term, start) {
+                scope.search = function (term) {
                     ngProgress.start();
                     scope.lastTerm = term;
+                    scope.eurostatStart = 0;
+                    scope.eurostatFilters = null;
+                    scope.eurostatSearchResults = null;
 
                     $http({
-                        url: API_CONF.DATASETS_MANAGER_URL + '/eurostat/search',
+                        url: API_CONF.DATASETS_MANAGER_URL + '/eurostat/search1',
                         params: {
-                            api: attrs.apiBase,
-                            start: start,
+                            q: term
+                        }
+                    }).then(function (response) {
+                        ngProgress.complete();
+                        resetFilters();
+                        scope.eurostatTotalSearchResults = response.data.result;
+                        handlePageResults(response.data.result);
+                    });
+                };
+
+                var handlePageResults = function(result){
+                    scope.eurostatSearchResults = [];
+                    var length = scope.eurostatStart + scope.itemsPerPage;
+
+                    if(length > result.length){
+                        length = result.length;
+                    }
+
+                    for(var i = scope.eurostatStart; i<length; i++){
+                        scope.eurostatSearchResults[i-scope.eurostatStart] = result[i];
+                    }
+
+                }
+
+                scope.searchForDatabase = function (term) {
+                    ngProgress.start();
+                    if(term != null){
+                        scope.lastTerm = term;
+                    }
+
+                    $http({
+                        url: API_CONF.DATASETS_MANAGER_URL + '/eurostat/search2',
+                        params: {
                             q: term
                         }
                     }).then(function (response) {
@@ -69,30 +121,38 @@ angular.module('pcApp.datasets.directives.eurostatImport', []).directive('eurost
                     });
                 };
 
+                var resetFilters = function(){
+                    scope.selectedFilters = [];
+                    scope.filterGeos = [];
+                    scope.filterTimes = [];
+                    scope.moreFilters = false;
+                }
+
+                resetFilters();
+
                 var prepareFilters = function(response){
                     scope.eurostatFilters = response.data.result;
                     scope.eurostatKeys = [];
                     scope.eurostatValues = [];
                     for(var key in scope.eurostatFilters) {
-                        if (scope.eurostatFilters.hasOwnProperty(key) && key !== 'label') {
-                            scope.eurostatKeys.push(key);
-                            var values = [];
-                            for(var i = 0; i<scope.eurostatFilters[key].length; i++){
-                                if(key === 'geo'){
-                                    scope.filterGeos.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
-                                }
-                                else if(key === 'time'){
-                                    scope.filterTimes.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
-                                }
-                                else{
-                                    values.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
-                                }
+                        scope.eurostatKeys.push(key);
+                        var values = [];
+                        for(var i = 0; i<scope.eurostatFilters[key].length; i++){
+                            if(key === 'GEO'){
+                                scope.filterGeos.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
                             }
-                            if(key !== 'geo' && key !== 'time')scope.eurostatValues.push([key,values]);
+                            else if(key === 'time'){
+                                scope.filterTimes.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
+                            }
+                            else{
+                                values.push({icon:"", name:scope.eurostatFilters[key][i][1], maker:scope.eurostatFilters[key][i][0], ticked:false});
+                            }
                         }
-                        else if(scope.eurostatFilters.hasOwnProperty(key) && key == 'label'){
-                            scope.eurostatLabel = scope.eurostatFilters[key];
-                        }
+                        if(key !== 'GEO' && key !== 'time')scope.eurostatValues.push([key,values]);
+                    }
+
+                    for(var i = 1980; i<2099 ; i++){
+                        scope.filterTimes.push({icon:"", name: i.toString(), maker: i.toString(), ticked:false});
                     }
                 }
 
