@@ -2,7 +2,7 @@
  * Directive for importing Data from Eurostat
  */
 angular.module('pcApp.datasets.directives.eurostatImport', []).directive('eurostatImport', [
-    '$http', 'ngProgress', 'API_CONF', function ($http, ngProgress, API_CONF) {
+    '$http', 'ngProgress', 'API_CONF', '$location','$anchorScroll',function ($http, ngProgress, API_CONF, $location, $anchorScroll) {
         return {
             restrict: 'A',
             templateUrl: function (el, attrs) {
@@ -34,6 +34,12 @@ angular.module('pcApp.datasets.directives.eurostatImport', []).directive('eurost
                     var start = (scope.currentPage - 1) * scope.itemsPerPage;
                     scope.eurostatStart = start;
                     handlePageResults(scope.eurostatTotalSearchResults);
+                    goToTop();
+                };
+
+                var goToTop = function(){
+                    $location.hash('eurostat_search');
+                    $anchorScroll();
                 };
 
                 scope.loadResource = function (dataset, filters) {

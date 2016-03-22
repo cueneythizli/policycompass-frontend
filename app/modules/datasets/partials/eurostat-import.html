@@ -1,7 +1,7 @@
 <section>
     <h4>Import datasets from Eurostat:</h4>
 
-    <div class="input-group">
+    <div class="input-group" id="eurostat_search">
         <input type="text" class="form-control" placeholder="Eurostat dataset code, e.g. 'for_remov'"
                ng-keyup="$event.keyCode == 13 && search(searchTerm)"
                ng-model="searchTerm"/>
@@ -16,7 +16,6 @@
 
     <form name="eurostatFiltersForm" id="eurostatFiltersForm">
         <div class="row" ng-show="moreFilters && eurostatFilters">
-            <br>
             <div class="col-md-4 col-xs-12 col-md-offset-4 text-center">
                 <span name="message_filters" id="message_filters">Please select more filters.</span>
             </div>
