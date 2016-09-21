@@ -18,7 +18,6 @@ angular.module('pcApp.ags.directives.wellaged', [])
 
                     $scope.editor.on('node:pointerclick', function(nodeView) {
                         $scope.selectedNode = nodeView;
-
                         // Need to force $scope update here.
                         $scope.$apply();
                     });
@@ -61,6 +60,29 @@ angular.module('pcApp.ags.directives.wellaged', [])
                             $scope.selectedNode.model.trigger('change:text');
                         }
                     }
+
+                    var schemes = [{'name': 'convergent', 'checked': false}, {'name':'cumulative', 'checked': false}, {'name':'factorized', 'checked': false}, {'name':'linked', 'checked': true}];
+
+                    var prepareSchemes = function(){
+                        var newSchemes = [];
+                        for(var i=0; i<schemes.length; i++){
+                            newSchemes.push(schemes[i]);
+                        }
+                        $scope.editor.graph.getElements()[$scope.editor.graph.getElements().length-1].set('schemes', newSchemes);
+                    }
+
+                    $scope.changeScheme = function(scheme){
+                        /*
+                        if(typeof $scope.selectedNode.model.get('scheme') !== 'undefined'){
+                            $scope.selectedNode.model.set('text', $scope.selectedNode.model.get('text').split(':').shift());
+                        }
+                        $scope.selectedNode.model.set('text', $scope.selectedNode.model.get('text') + ':' + scheme[0].name);
+                        $scope.selectedNode.model.trigger('change:text');
+                        */
+                        $scope.selectedNode.model.set('selectedScheme', scheme);
+                        $scope.selectedNode.model.set('scheme', scheme[0].name);
+                    }
+
                 },
                 link: function(scope, element, attrs) {
                     scope._editorEl = element[0].querySelector('.wellaged-editor');
